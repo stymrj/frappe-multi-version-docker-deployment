@@ -46,6 +46,12 @@ AWS EC2 Ubuntu Server
 ├── Docker Compose
 ├── Portainer
 │
+├── Portainer
+│   ├── Container: portainer
+│   ├── Port: 9443
+│   ├── Data Volume: portainer_data
+│   └── Docker Socket: /var/run/docker.sock
+│
 ├── Frappe v14
 │   ├── Container: frappe-v14
 │   ├── Port: 8014
@@ -53,7 +59,7 @@ AWS EC2 Ubuntu Server
 │   ├── Redis: redis14
 │   ├── Volume: frappe14_bench
 │   └── Network: frappe14_net
-│
+
 └── Frappe v15
     ├── Container: frappe-v15
     ├── Port: 8015
@@ -71,9 +77,7 @@ AWS EC2 Ubuntu Server
 frappe-multi-version-docker-deployment/
 ├── Dockerfile.frappe
 ├── docker-compose.yml
-├── README.md
-├── INSTRUCTIONS.md
-└── screenshots/
+└── README.md
 ```
 
 ---
@@ -90,6 +94,8 @@ frappe-multi-version-docker-deployment/
 | `redis15` | Redis for v15 | Internal 6379 |
 | `portainer` | Docker management UI | 9443 |
 
+Portainer also listens on `8000` for edge agent and tunnel traffic when needed.
+
 ---
 
 ## Isolation Between Versions
@@ -104,6 +110,25 @@ frappe-multi-version-docker-deployment/
 | Network | `frappe14_net` | `frappe15_net` |
 
 This avoids conflicts between ports, databases, Redis services, volumes, and networks.
+
+## Deployment Steps
+
+1. Install Docker and Docker Compose v2 on the Ubuntu host.
+2. Clone this repository onto the server.
+3. Start the full stack:
+
+```bash
+docker compose up -d --build
+```
+
+4. Open Portainer at:
+
+```txt
+https://184.72.75.158:9443
+```
+
+5. Use Portainer to inspect, start, stop, restart, and remove the containers for Frappe v14 and Frappe v15.
+6. If the site is being deployed on a different host, update the site host URLs in `docker-compose.yml` before bringing the stack up.
 
 ---
 
@@ -158,34 +183,14 @@ View logs:
 ```bash
 docker logs -f frappe-v14
 docker logs -f frappe-v15
+docker logs -f portainer
 ```
 
 ---
 
 ## Portainer
 
-Portainer is used to manage all Docker containers.
-
-Install Portainer:
-
-```bash
-docker volume create portainer_data
-
-docker run -d \
-  -p 8000:8000 \
-  -p 9443:9443 \
-  --name portainer \
-  --restart=always \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  -v portainer_data:/data \
-  portainer/portainer-ce:lts
-```
-
-Open:
-
-```txt
-https://184.72.75.158:9443
-```
+Portainer is deployed as part of the same compose stack and uses the Docker socket to manage the host.
 
 From Portainer, these containers can be started, stopped, restarted, inspected, and monitored:
 
@@ -235,6 +240,12 @@ Stop and remove containers:
 
 ```bash
 docker compose down
+```
+
+Stop and remove containers plus named volumes:
+
+```bash
+docker compose down -v
 ```
 
 Full reset with volumes:

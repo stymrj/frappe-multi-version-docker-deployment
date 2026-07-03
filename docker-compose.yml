@@ -1,4 +1,18 @@
 services:
+  portainer:
+    image: portainer/portainer-ce:lts
+    container_name: portainer
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+      - "9443:9443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    networks:
+      - frappe14_net
+      - frappe15_net
+
   mariadb14:
     image: mariadb:10.6
     container_name: mariadb14
@@ -178,6 +192,7 @@ services:
       - frappe15_net
 
 volumes:
+  portainer_data:
   mariadb14_data:
   mariadb15_data:
   frappe14_bench:
