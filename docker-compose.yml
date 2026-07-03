@@ -1,0 +1,188 @@
+services:
+  mariadb14:
+    image: mariadb:10.6
+    container_name: mariadb14
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MARIADB_ROOT_PASSWORD: root
+      MYSQL_DATABASE: frappe14
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - mariadb14_data:/var/lib/mysql
+    networks:
+      - frappe14_net
+
+  redis14:
+    image: redis:alpine
+    container_name: redis14
+    restart: unless-stopped
+    networks:
+      - frappe14_net
+
+  init-frappe14:
+    build:
+      context: .
+      dockerfile: Dockerfile.frappe
+    image: frappe-bench-ready:latest
+    container_name: init-frappe14
+    user: root
+    command: bash -lc "mkdir -p /workspace && chown -R 1000:1000 /workspace && chmod -R 775 /workspace && ls -ldn /workspace"
+    volumes:
+      - frappe14_bench:/workspace
+    networks:
+      - frappe14_net
+
+  frappe-v14:
+    build:
+      context: .
+      dockerfile: Dockerfile.frappe
+    image: frappe-bench-ready:latest
+    container_name: frappe-v14
+    user: "1000:1000"
+    restart: unless-stopped
+    environment:
+      SITE_NAME: "184.72.75.158"
+    depends_on:
+      init-frappe14:
+        condition: service_completed_successfully
+      mariadb14:
+        condition: service_started
+      redis14:
+        condition: service_started
+    working_dir: /workspace
+    command: >
+      bash -lc "
+      export HOME=/home/frappe &&
+      export PATH=/home/frappe/.local/bin:/home/frappe/.bench/bin:/usr/local/bin:/usr/bin:/bin:$$PATH &&
+      export UV_LINK_MODE=copy &&
+      echo 'Waiting for MariaDB v14...' &&
+      until bash -c 'cat < /dev/null > /dev/tcp/mariadb14/3306' 2>/dev/null; do
+        echo 'MariaDB v14 not ready yet...';
+        sleep 5;
+      done &&
+      echo 'MariaDB v14 is ready.' &&
+      cd /workspace &&
+      if [ ! -f /workspace/frappe14-bench/.initialized ]; then
+        rm -rf /workspace/frappe14-bench &&
+        bench init frappe14-bench --frappe-branch version-14 --skip-redis-config-generation --skip-assets &&
+        cd frappe14-bench &&
+        bench set-config -g db_host mariadb14 &&
+        bench set-config -g redis_cache redis://redis14:6379 &&
+        bench set-config -g redis_queue redis://redis14:6379 &&
+        bench set-config -g redis_socketio redis://redis14:6379 &&
+        bench new-site $$SITE_NAME --db-host mariadb14 --db-root-password root --admin-password admin --no-mariadb-socket &&
+        bench --site $$SITE_NAME set-config host_name http://184.72.75.158:8014 &&
+        touch /workspace/frappe14-bench/.initialized
+      fi &&
+      cd /workspace/frappe14-bench &&
+      bench use $$SITE_NAME &&
+      bench serve --host 0.0.0.0 --port 8000
+      "
+    ports:
+      - "8014:8000"
+    volumes:
+      - frappe14_bench:/workspace
+    networks:
+      - frappe14_net
+
+  mariadb15:
+    image: mariadb:10.6
+    container_name: mariadb15
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MARIADB_ROOT_PASSWORD: root
+      MYSQL_DATABASE: frappe15
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - mariadb15_data:/var/lib/mysql
+    networks:
+      - frappe15_net
+
+  redis15:
+    image: redis:alpine
+    container_name: redis15
+    restart: unless-stopped
+    networks:
+      - frappe15_net
+
+  init-frappe15:
+    build:
+      context: .
+      dockerfile: Dockerfile.frappe
+    image: frappe-bench-ready:latest
+    container_name: init-frappe15
+    user: root
+    command: bash -lc "mkdir -p /workspace && chown -R 1000:1000 /workspace && chmod -R 775 /workspace && ls -ldn /workspace"
+    volumes:
+      - frappe15_bench:/workspace
+    networks:
+      - frappe15_net
+
+  frappe-v15:
+    build:
+      context: .
+      dockerfile: Dockerfile.frappe
+    image: frappe-bench-ready:latest
+    container_name: frappe-v15
+    user: "1000:1000"
+    restart: unless-stopped
+    environment:
+      SITE_NAME: "184.72.75.158"
+    depends_on:
+      init-frappe15:
+        condition: service_completed_successfully
+      mariadb15:
+        condition: service_started
+      redis15:
+        condition: service_started
+    working_dir: /workspace
+    command: >
+      bash -lc "
+      export HOME=/home/frappe &&
+      export PATH=/home/frappe/.local/bin:/home/frappe/.bench/bin:/usr/local/bin:/usr/bin:/bin:$$PATH &&
+      export UV_LINK_MODE=copy &&
+      echo 'Waiting for MariaDB v15...' &&
+      until bash -c 'cat < /dev/null > /dev/tcp/mariadb15/3306' 2>/dev/null; do
+        echo 'MariaDB v15 not ready yet...';
+        sleep 5;
+      done &&
+      echo 'MariaDB v15 is ready.' &&
+      cd /workspace &&
+      if [ ! -f /workspace/frappe15-bench/.initialized ]; then
+        rm -rf /workspace/frappe15-bench &&
+        bench init frappe15-bench --frappe-branch version-15 --skip-redis-config-generation --skip-assets &&
+        cd frappe15-bench &&
+        bench set-config -g db_host mariadb15 &&
+        bench set-config -g redis_cache redis://redis15:6379 &&
+        bench set-config -g redis_queue redis://redis15:6379 &&
+        bench set-config -g redis_socketio redis://redis15:6379 &&
+        bench new-site $$SITE_NAME --db-host mariadb15 --db-root-password root --admin-password admin --no-mariadb-socket &&
+        bench --site $$SITE_NAME set-config host_name http://184.72.75.158:8015 &&
+        touch /workspace/frappe15-bench/.initialized
+      fi &&
+      cd /workspace/frappe15-bench &&
+      bench use $$SITE_NAME &&
+      bench serve --host 0.0.0.0 --port 8000
+      "
+    ports:
+      - "8015:8000"
+    volumes:
+      - frappe15_bench:/workspace
+    networks:
+      - frappe15_net
+
+volumes:
+  mariadb14_data:
+  mariadb15_data:
+  frappe14_bench:
+  frappe15_bench:
+
+networks:
+  frappe14_net:
+  frappe15_net:
