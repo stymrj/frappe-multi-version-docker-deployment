@@ -21,6 +21,13 @@ Username: Administrator
 Password: admin
 ```
 
+Portainer login:
+
+```txt
+Username: admin
+Password: asksatyamraj
+```
+
 ---
 
 ## Tech Stack
