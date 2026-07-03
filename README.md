@@ -272,6 +272,21 @@ docker restart frappe-v14 frappe-v15
 
 ---
 
+## Screenshots
+
+Uploaded deployment evidence:
+
+- [Screenshot 1](screenshots/Screenshot%202026-07-03%20at%203.13.30%E2%80%AFPM.png)
+- [Screenshot 2](screenshots/Screenshot%202026-07-03%20at%203.14.24%E2%80%AFPM.png)
+- [Screenshot 3](screenshots/Screenshot%202026-07-03%20at%203.23.31%E2%80%AFPM.png)
+- [Screenshot 4](screenshots/Screenshot%202026-07-03%20at%203.24.58%E2%80%AFPM.png)
+- [Screenshot 5](screenshots/Screenshot%202026-07-03%20at%203.27.18%E2%80%AFPM.png)
+- [Screenshot 6](screenshots/Screenshot%202026-07-03%20at%203.27.44%E2%80%AFPM.png)
+
+If you want these embedded inline instead of linked, I can add a gallery layout as well.
+
+---
+
 ## Verification Checklist
 
 - Frappe v14 runs on port `8014`
